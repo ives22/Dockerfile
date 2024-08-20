@@ -1,0 +1,5 @@
+PyYAML==6.0
+requests==2.26.0
+tencentcloud-sdk-python==3.0.522
+urllib3==1.26.7
+

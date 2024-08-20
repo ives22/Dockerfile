@@ -1,0 +1,35 @@
+Source: stress-ng
+Rules-Requires-Root: no
+Section: devel
+Priority: optional
+Maintainer: Colin Ian King <colin.i.king@gmail.com>
+Standards-Version: 4.6.0
+Build-Depends: debhelper (>= 13),
+               debhelper-compat (=13),
+               zlib1g-dev,
+               libbsd-dev,
+               libgcrypt20-dev,
+               libjpeg-dev,
+               libkeyutils-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64 !linux-ia64],
+               libapparmor-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64],
+               apparmor [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64],
+               libaio-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64],
+               libcap-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64],
+               libsctp-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64],
+               libipsec-mb-dev [amd64],
+               libjudy-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64],
+               libatomic1 [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64],
+               libkmod-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64],
+               libxxhash-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64]
+Homepage: https://github.com/ColinIanKing/stress-ng
+
+Package: stress-ng
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: tool to load and stress a computer
+ stress-ng can stress various subsystems of a computer.  It can stress load
+ CPU, cache, disk, memory, socket and pipe I/O, scheduling and much more.
+ stress-ng is a re-write of the original stress tool by Amos Waterland but
+ has many additional features such as specifying the number of bogo operations
+ to run, execution metrics, a stress verification on memory and compute
+ operations and considerably more stress mechanisms.

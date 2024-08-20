@@ -1,0 +1,148 @@
+api:
+    # 接口名
+  - api_name: elasticsearch
+    # 接口地址
+    api_url: http://192.168.102.133:9200/_cluster/health
+    # 类型: common(使用于无鉴权或者固定鉴权) 或者 rio (为rio需要提供rio_paas_id,rio_paas_token配置)
+    type: common
+    # 请求方法
+    method: GET
+    # 请求头
+    headers:
+      Authorization: Basic ZWxhc3RpYzphZG1pbkAxMjM=
+    # 请求体类型，目前支持类型有json和form_data类型，取值为：json 或 form_data
+    body_type: json
+    # 请求体，根据 "body_type" 的不一样，写法也不一样
+    body: ''
+    # 校验类型 code【比较状态码】content 【正则匹配响应内容】
+    check_type: content
+    # 校验内容 响应状态码【与所填的状态码不同则认为异常】 或者 需匹配的响应内容【正则匹配，如果没匹配到则认为异常】
+    check_content: yellow
+    # 校验结果取反，只对 content 类型生效，取值为：True 表示取反，False表示不取反
+    check_reverse: False
+
+  # 示例1：校验body请求类型为fomr-data类型，接口类型为common，并且校验类型为content类型的配置示例，匹配结果不取反（返回结果包含"邱万辉"则表示正常）
+  - api_name: 解密验证接口test1
+    api_url: https://cq.tgovcloud.com/wyj/wyj-extend/sp/sweepcode/getQrcInfo
+    type: common
+    method: POST
+    headers:
+      sessionid: 'test-2af1-4b24-b7e5-2acb9dfc1111'
+    body_type: form_data
+    body: "{\"corpid\": (None, \"b4ed6764c52c2ab9b8bba7e7ed14bb89\")}"
+    check_type: content
+    check_content: '邱万辉'
+    check_reverse: False
+
+  # 示例2：校验body请求类型为fomr-data类型，接口类型为common，并且校验类型为content类型的配置示例，匹配结果取反（返回结果不包含"邱万辉"则表示正常）
+  - api_name: 解密验证接口test2
+    api_url: https://cq.tgovcloud.com/wyj/wyj-extend/sp/sweepcode/getQrcInfo
+    type: common
+    method: POST
+    headers:
+      sessionid: 'test-2af1-4b24-b7e5-2acb9dfc1111'
+    body_type: form_data
+    body: "{\"corpid\": (None, \"b4ed6764c52c2ab9b8bba7e7ed14bb89\")}"
+    check_type: content
+    check_content: '邱万辉'
+    check_reverse: True
+
+  # 示例3：校验body请求类型为json类型，接口类型为里约网关，并且校验类型为content类型的配置示例，匹配结果不取反（结果中包含 '"errcode":0'则表示正常）
+  - api_name: XZ-公有云-中高风险地区查询
+    api_url: https://rio.scdsjzx.cn/ebus/tfcodeserver/manageHighRiskArea/v1/listManageHighRiskArea
+    type: rio
+    rio_paas_id: tfcodeserver
+    rio_paas_token: 621386473642e545877093df9ad0fb7f
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_type: json
+    body: '{}'
+    check_type: content
+    check_content: '"errcode":0'
+    check_reverse: False
+
+  # 示例4：校验body请求类型为json类型，接口类型为common，并且校验类型为code类型的配置示例。（接口返回码为200，则表示正常）
+  - api_name: 域名查询
+    api_url: https://api.devopsclub.cn/api/whoisquery
+    type: common
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_type: json
+    body: '{"domain": "baidu.com"}'
+    check_type: code
+    check_content: 200
+    check_reverse: False
+
+  # 其它样例：
+  - api_name: XZ-公有云-健康打卡信息转码
+    api_url: https://rio.scdsjzx.cn/ebus/tfcodeserver/healthDeclare/v1/healthPunch
+    type: rio
+    rio_paas_id: tfcodeserver
+    rio_paas_token: 621386473642e545877093df9ad0fb7f
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_type: json
+    body: ''
+    check_type: content
+    check_content: '"errcode":100005'
+    check_reverse: False
+
+  - api_name: XZ-公有云-个人健康码状态查询
+    api_url: https://rio.scdsjzx.cn/ebus/tfcodeserver/healthDeclare/v1/getHealthCode
+    type: rio
+    rio_paas_id: tfcodeserver
+    rio_paas_token: 621386473642e545877093df9ad0fb7f
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_type: json
+    body: ''
+    check_type: content
+    check_content: '"errcode":100005'
+    check_reverse: False
+
+  - api_name: XZ-公有云-健康申报信息转码
+    api_url: https://rio.scdsjzx.cn/ebus/tfcodeserver/healthDeclare/v1/healthDeclare
+    type: rio
+    rio_paas_id: tfcodeserver
+    rio_paas_token: 621386473642e545877093df9ad0fb7f
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_type: json
+    body: ''
+    check_type: content
+    check_content: '"errcode":100005'
+    check_reverse: False
+
+  - api_name: XZ-公有云-中高风险地区查询
+    api_url: https://rio.scdsjzx.cn/ebus/tfcodeserver/manageHighRiskArea/v1/listManageHighRiskArea
+    type: rio
+    rio_paas_id: tfcodeserver
+    rio_paas_token: 621386473642e545877093df9ad0fb7f
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_type: json
+    body: '{}'
+    check_type: content
+    check_content: '"errcode":0'
+    check_reverse: False
+
+  - api_name: XZ-公有云-更新健康码规则
+    api_url: https://rio.scdsjzx.cn/ebus/tfcodeserver/userLabel/v1/saveOrUpdateRule
+    type: rio
+    rio_paas_id: tfcodeserver
+    rio_paas_token: 621386473642e545877093df9ad0fb7f
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_type: json
+    body: ''
+    check_type: content
+    check_content: '"errcode":100005'
+    check_reverse: False
+

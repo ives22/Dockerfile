@@ -1,0 +1,543 @@
+/*
+ * Copyright (C) 2013-2021 Canonical, Ltd.
+ * Copyright (C)      2022 Colin Ian King.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ */
+#include "stress-ng.h"
+
+#if defined(HAVE_MQUEUE_H)
+#include <mqueue.h>
+#else
+UNEXPECTED
+#endif
+
+#if defined(HAVE_SEM_SYSV)
+#include <sys/sem.h>
+#else
+UNEXPECTED
+#endif
+
+static const stress_help_t help[] = {
+	{ "s N","switch N",	 	"start N workers doing rapid context switches" },
+	{ NULL,	"switch-ops N",	 	"stop after N context switch bogo operations" },
+	{ NULL, "switch-freq N", 	"set frequency of context switches" },
+	{ NULL, "switch-method M",	"mq | pipe | sem-sysv" },
+	{ NULL, NULL, 		 NULL }
+};
+
+typedef struct {
+	const char *name;
+	int (*func)(const stress_args_t *args, const uint64_t switch_freq,
+		    const uint64_t switch_delay, const uint64_t threshold);
+} stress_switch_method_t;
+
+#define THRESH_FREQ	(100)		/* Delay adjustment rate in HZ */
+
+/*
+ *  stress_set_switch_freq()
+ *	set context switch freq in Hz from given option
+ */
+static int stress_set_switch_freq(const char *opt)
+{
+	uint64_t switch_freq;
+
+	switch_freq = stress_get_uint64(opt);
+	stress_check_range("switch-freq", switch_freq, 0, STRESS_NANOSECOND);
+	return stress_set_setting("switch-freq", TYPE_ID_UINT64, &switch_freq);
+}
+
+/*
+ *  stress_switch_rate()
+ *	report context switch duration
+ */
+static void stress_switch_rate(
+	const stress_args_t *args,
+	char *method,
+	const double t_start,
+	const double t_end,
+	uint64_t counter)
+{
+	pr_inf("%s: (%s) %.2f nanoseconds per context switch (based on parent run time)\n",
+		args->name, method,
+		((t_end - t_start) * STRESS_NANOSECOND) / (double)counter);
+}
+
+/*
+ *  stress_switch_delay()
+ *	adjustable delay to try and keep switch rate to
+ *	a specified frequency
+ */
+static void stress_switch_delay(
+	const stress_args_t *args,
+	const uint64_t switch_delay,
+	const uint64_t threshold,
+	const double t_start,
+	uint64_t *delay)
+{
+	static uint64_t i = 0;
+
+	/*
+	 *  Small delays take a while, so skip these
+	 */
+	if (*delay > 1000)
+		shim_nanosleep_uint64(*delay);
+
+	/*
+	 *  This is expensive, so only update the
+	 *  delay infrequently (at THRESH_FREQ HZ)
+	 */
+	if (++i >= threshold) {
+		double overrun, overrun_by, t;
+		const uint64_t counter = get_counter(args);
+
+		i = 0;
+		t = t_start + ((double)(counter * switch_delay) / STRESS_NANOSECOND);
+		overrun = (stress_time_now() - t) * (double)STRESS_NANOSECOND;
+		overrun_by = (double)switch_delay - overrun;
+
+		if (overrun_by < 0.0) {
+			/* Massive overrun, skip a delay */
+			*delay = 0;
+		} else {
+			/* Overrun or underrun? */
+			*delay = (uint64_t)overrun_by;
+			if (*delay > switch_delay) {
+				/* Don't delay more than the switch delay */
+				*delay = switch_delay;
+			}
+		}
+	}
+}
+
+/*
+ *  stress_switch_pipe
+ *	stress by heavy context switching using pipe
+ *	synchronization method
+ */
+static int stress_switch_pipe(
+	const stress_args_t *args,
+	const uint64_t switch_freq,
+	const uint64_t switch_delay,
+	const uint64_t threshold)
+{
+	pid_t pid;
+	int pipefds[2];
+	size_t buf_size;
+
+	(void)memset(pipefds, 0, sizeof(pipefds));
+#if defined(HAVE_PIPE2) &&	\
+    defined(O_DIRECT)
+	if (pipe2(pipefds, O_DIRECT) < 0) {
+		/*
+		 *  Fallback to pipe if pipe2 fails
+		 */
+		if (pipe(pipefds) < 0) {
+			pr_fail("%s: pipe failed, errno=%d (%s)\n",
+				args->name, errno, strerror(errno));
+			return EXIT_FAILURE;
+		}
+	}
+	buf_size = 1;
+#else
+	if (pipe(pipefds) < 0) {
+		pr_fail("%s: pipe failed, errno=%d (%s)\n",
+			args->name, errno, strerror(errno));
+		return EXIT_FAILURE;
+	}
+	buf_size = args->page_size;
+#endif
+
+#if defined(F_SETPIPE_SZ)
+	if (fcntl(pipefds[0], F_SETPIPE_SZ, buf_size) < 0) {
+		pr_dbg("%s: could not force pipe size to 1 page, "
+			"errno = %d (%s)\n",
+			args->name, errno, strerror(errno));
+	}
+	if (fcntl(pipefds[1], F_SETPIPE_SZ, buf_size) < 0) {
+		pr_dbg("%s: could not force pipe size to 1 page, "
+			"errno = %d (%s)\n",
+			args->name, errno, strerror(errno));
+	}
+#endif
+
+	stress_set_proc_state(args->name, STRESS_STATE_RUN);
+again:
+	pid = fork();
+	if (pid < 0) {
+		if (stress_redo_fork(errno))
+			goto again;
+		(void)close(pipefds[0]);
+		(void)close(pipefds[1]);
+		if (!keep_stressing(args))
+			goto finish;
+		pr_fail("%s: fork failed, errno=%d (%s)\n",
+			args->name, errno, strerror(errno));
+		return EXIT_FAILURE;
+	} else if (pid == 0) {
+		char buf[buf_size];
+
+		(void)setpgid(0, g_pgrp);
+		stress_parent_died_alarm();
+		(void)sched_settings_apply(true);
+
+		(void)close(pipefds[1]);
+
+		while (keep_stressing_flag()) {
+			ssize_t ret;
+
+			ret = read(pipefds[0], buf, sizeof(buf));
+			if (ret <= 0) {
+				if (errno == 0)	/* ret == 0 case */
+					break;
+				if ((errno == EAGAIN) || (errno == EINTR))
+					continue;
+				if (errno == EPIPE)
+					break;
+				pr_fail("%s: read failed, errno=%d (%s)\n",
+					args->name, errno, strerror(errno));
+				break;
+			}
+		}
+		(void)close(pipefds[0]);
+		_exit(EXIT_SUCCESS);
+	} else {
+		char buf[buf_size];
+		int status;
+		double t_start;
+		uint64_t delay = switch_delay;
+
+		/* Parent */
+		(void)setpgid(pid, g_pgrp);
+		(void)close(pipefds[0]);
+		(void)memset(buf, '_', buf_size);
+
+		t_start = stress_time_now();
+		do {
+			ssize_t ret;
+
+			inc_counter(args);
+
+			ret = write(pipefds[1], buf, sizeof(buf));
+			if (ret <= 0) {
+				if ((errno == EAGAIN) || (errno == EINTR))
+					continue;
+				if (errno == EPIPE)
+					break;
+				if (errno) {
+					pr_fail("%s: write failed, errno=%d (%s)\n",
+						args->name, errno, strerror(errno));
+					break;
+				}
+				continue;
+			}
+
+			if (switch_freq)
+				stress_switch_delay(args, switch_delay, threshold, t_start, &delay);
+		} while (keep_stressing(args));
+
+		stress_switch_rate(args, "pipe", t_start, stress_time_now(), get_counter(args));
+
+		(void)close(pipefds[0]);
+
+		(void)kill(pid, SIGKILL);
+		(void)shim_waitpid(pid, &status, 0);
+	}
+finish:
+	stress_set_proc_state(args->name, STRESS_STATE_DEINIT);
+
+	return EXIT_SUCCESS;
+}
+
+#if defined(HAVE_SEM_SYSV)
+/*
+ *  stress_switch_sem_sysv
+ *	stress by heavy context switching using semaphore
+ *	synchronization method
+ */
+static int stress_switch_sem_sysv(
+	const stress_args_t *args,
+	const uint64_t switch_freq,
+	const uint64_t switch_delay,
+	const uint64_t threshold)
+{
+	pid_t pid;
+	int sem_id;
+	int i;
+
+	for (i = 0; i < 100; i++) {
+		key_t key_id = (key_t)stress_mwc16();
+
+		sem_id = semget(key_id, 1, IPC_CREAT | S_IRUSR | S_IWUSR);
+		if (sem_id >= 0)
+			break;
+	}
+	if (sem_id < 0) {
+		pr_err("%s: semaphore init (SYSV) failed: errno=%d (%s)\n",
+			args->name, errno, strerror(errno));
+                return EXIT_FAILURE;
+        }
+
+	stress_set_proc_state(args->name, STRESS_STATE_RUN);
+again:
+	pid = fork();
+	if (pid < 0) {
+		if (stress_redo_fork(errno))
+			goto again;
+		if (!keep_stressing(args))
+			goto finish;
+		pr_fail("%s: fork failed, errno=%d (%s)\n",
+			args->name, errno, strerror(errno));
+		return EXIT_FAILURE;
+	} else if (pid == 0) {
+		(void)setpgid(0, g_pgrp);
+		stress_parent_died_alarm();
+		(void)sched_settings_apply(true);
+
+		while (keep_stressing_flag()) {
+			struct sembuf sem;
+
+			sem.sem_num = 0;
+			sem.sem_op = -1;
+			sem.sem_flg = SEM_UNDO;
+
+			if (semop(sem_id, &sem, 1) < 0)
+				break;
+
+			sem.sem_num = 0;
+			sem.sem_op = 1;
+			sem.sem_flg = SEM_UNDO;
+
+			if (semop(sem_id, &sem, 1) < 0)
+				break;
+		}
+		_exit(EXIT_SUCCESS);
+	} else {
+		int status;
+		double t_start;
+		uint64_t delay = switch_delay;
+		struct sembuf sem;
+
+		/* Parent */
+		(void)setpgid(pid, g_pgrp);
+
+		t_start = stress_time_now();
+		do {
+			inc_counter(args);
+
+			sem.sem_num = 0;
+			sem.sem_op = 1;
+			sem.sem_flg = SEM_UNDO;
+
+			if (semop(sem_id, &sem, 1) < 0)
+				break;
+
+			if (switch_freq)
+				stress_switch_delay(args, switch_delay, threshold, t_start, &delay);
+
+			if (!keep_stressing(args))
+				break;
+			sem.sem_num = 0;
+			sem.sem_op = -1;
+			sem.sem_flg = SEM_UNDO;
+
+			if (semop(sem_id, &sem, 1) < 0)
+				break;
+		} while (keep_stressing(args));
+
+		stress_switch_rate(args, "sem-sysv", t_start, stress_time_now(), 2 * get_counter(args));
+
+		(void)kill(pid, SIGKILL);
+		(void)shim_waitpid(pid, &status, 0);
+	}
+finish:
+	stress_set_proc_state(args->name, STRESS_STATE_DEINIT);
+
+	semctl(sem_id, 0, IPC_RMID);
+
+	return EXIT_SUCCESS;
+}
+#endif
+
+#if defined(HAVE_MQUEUE_H) &&   \
+    defined(HAVE_LIB_RT) &&     \
+    defined(HAVE_MQ_POSIX)
+/*
+ *  stress_switch_mq
+ *	stress by heavy context switching using message queue
+ */
+static int stress_switch_mq(
+	const stress_args_t *args,
+	const uint64_t switch_freq,
+	const uint64_t switch_delay,
+	const uint64_t threshold)
+{
+	typedef struct {
+		uint64_t        value;
+	} stress_msg_t;
+
+	pid_t pid;
+	mqd_t mq;
+	char mq_name[64];
+	struct mq_attr attr;
+	stress_msg_t msg;
+
+	(void)snprintf(mq_name, sizeof(mq_name), "/%s-%" PRIdMAX "-%" PRIu32,
+			args->name, (intmax_t)args->pid, args->instance);
+	attr.mq_flags = 0;
+	attr.mq_maxmsg = 1;
+	attr.mq_msgsize = sizeof(stress_msg_t);
+	attr.mq_curmsgs = 0;
+	mq = mq_open(mq_name, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR, &attr);
+	if (mq < 0) {
+		pr_err("%s: message queue open failed: errno=%d (%s)\n",
+			args->name, errno, strerror(errno));
+                return EXIT_FAILURE;
+	}
+
+	(void)memset(&msg, 0, sizeof(msg));
+	stress_set_proc_state(args->name, STRESS_STATE_RUN);
+again:
+	pid = fork();
+	if (pid < 0) {
+		if (stress_redo_fork(errno))
+			goto again;
+		if (!keep_stressing(args))
+			goto finish;
+		pr_fail("%s: fork failed, errno=%d (%s)\n",
+			args->name, errno, strerror(errno));
+		return EXIT_FAILURE;
+	} else if (pid == 0) {
+		(void)setpgid(0, g_pgrp);
+		stress_parent_died_alarm();
+		(void)sched_settings_apply(true);
+
+		while (keep_stressing_flag()) {
+			msg.value++;
+			if (mq_send(mq, (char *)&msg, sizeof(msg), 0) < 0)
+				break;
+		}
+		_exit(EXIT_SUCCESS);
+	} else {
+		int status;
+		double t_start;
+		uint64_t delay = switch_delay;
+
+		/* Parent */
+		(void)setpgid(pid, g_pgrp);
+
+		t_start = stress_time_now();
+		do {
+			inc_counter(args);
+			unsigned int prio;
+
+			if (mq_receive(mq, (char *)&msg, sizeof(msg), &prio) < 0)
+				break;
+
+			if (switch_freq)
+				stress_switch_delay(args, switch_delay, threshold, t_start, &delay);
+		} while (keep_stressing(args));
+
+		stress_switch_rate(args, "mq", t_start, stress_time_now(), get_counter(args));
+
+		(void)kill(pid, SIGKILL);
+		(void)shim_waitpid(pid, &status, 0);
+	}
+finish:
+	stress_set_proc_state(args->name, STRESS_STATE_DEINIT);
+
+	(void)mq_close(mq);
+	(void)mq_unlink(mq_name);
+
+	return EXIT_SUCCESS;
+}
+#endif
+
+static stress_switch_method_t stress_switch_methods[] = {
+#if defined(HAVE_MQUEUE_H) &&   \
+    defined(HAVE_LIB_RT) &&     \
+    defined(HAVE_MQ_POSIX)
+	{ "mq",		stress_switch_mq },
+#endif
+	{ "pipe",	stress_switch_pipe },
+#if defined(HAVE_SEM_SYSV)
+	{ "sem-sysv",	stress_switch_sem_sysv },
+#endif
+	{ NULL,		NULL },
+};
+
+/*
+ *  stress_set_switch_method()
+ *	set the default switch method
+ */
+static int stress_set_switch_method(const char *name)
+{
+	stress_switch_method_t *info;
+
+	for (info = stress_switch_methods; info->name; info++) {
+		if (!strcmp(info->name, name)) {
+			stress_set_setting("switch-method", TYPE_ID_UINTPTR_T, &info);
+			return 0;
+		}
+	}
+
+	(void)fprintf(stderr, "switch-method must be one of:");
+	for (info = stress_switch_methods; info->name; info++) {
+		(void)fprintf(stderr, " %s", info->name);
+	}
+	(void)fprintf(stderr, "\n");
+
+	return -1;
+}
+
+/*
+ *  stress_switch
+ *	stress by heavy context switching
+ */
+static int stress_switch(const stress_args_t *args)
+{
+	uint64_t switch_freq = 0, switch_delay, threshold;
+
+	stress_switch_method_t *switch_method;
+
+	(void)stress_get_setting("switch-freq", &switch_freq);
+	(void)stress_get_setting("switch-method", (void *)&switch_method);
+
+	switch_delay = (switch_freq == 0) ? 0 : STRESS_NANOSECOND / switch_freq;
+	threshold = switch_freq / THRESH_FREQ;
+
+	return switch_method->func(args, switch_freq, switch_delay, threshold);
+}
+
+static void stress_switch_set_default(void)
+{
+	stress_set_switch_method("pipe");
+}
+
+static const stress_opt_set_func_t opt_set_funcs[] = {
+	{ OPT_switch_freq,	stress_set_switch_freq },
+	{ OPT_switch_method,	stress_set_switch_method },
+	{ 0,			NULL }
+};
+
+stressor_info_t stress_switch_info = {
+	.stressor = stress_switch,
+	.class = CLASS_SCHEDULER | CLASS_OS,
+	.opt_set_funcs = opt_set_funcs,
+	.set_default = stress_switch_set_default,
+	.verify = VERIFY_ALWAYS,
+	.help = help
+};

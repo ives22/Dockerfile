@@ -1,0 +1,49 @@
+[2022-01-21 09:41:52] - {"date": "2022-01-21 09:41:52", "funcname": "elastalert_alert", "level": "INFO", "line": 69, "message": "Get elastalert Data: {'referer': 'None', 'targetName': '10.109.103.149', 'deviceTicket': 'None', 'orgPathName': '/ebus/mbs_gg_dev/api/publicRetirement/queryRetrShowInfo', 'orgHost': '192.168.204.31:8080', 'reqLength': '-1', 'resLength': '-1', 'targetXRioSeq': 'None', 'errorInfo': 'client request aborted', 'staffname': 'None', 'source': '20211229.access_8.csv', 'orgUrl': '/ebus/mbs_gg_dev/api/publicRetirement/queryRetrShowInfo?', 'deviceId': 'None', 'duration': 10002, 'authorization': 'None', 'path': 'None', 'host': 'None', 'beat': {'hostname': 'host-192-168-204-31', 'name': 'host-192-168-204-31', 'version': '6.6.2'}, 'srvid': 'mbs_gg_dev_api_publicretirement_queryretrshowinfo', 'paasid': 'mbs_gg_dev', 'remoteAddress': '192.168.204.29', 'ext': {'timeSendUpstream': '1640739280796'}, 'offset': 459903831, 'method': 'POST', 'methodName': 'None', 'userAgent': 'Apache-HttpClient/4.5.9 (Java/1.8.0_252)', 'xRioSeq': 'WIXppFV82J5EH1OR5C3kLIQygIMqPvze', 'acctype': 'pub', 'requestTime': '2021-12-29T08:54:40.780+08:00', '@timestamp': '2021-12-29T08:54:50.782000+08:00', 'forwardedFor': '192.168.204.241, 192.168.204.29', 'port': 'None', 'backServerAddress': 'None', 'serverIp': 'None', 'sourceName': 'mbs_gg_dev_pub_mbs_gg_dev_api_publicretirement_queryretrshowinfo', 'fields': {'type': 'apigate'}, 'statusCode': 'aborted', '_id': 'fgKuA34BmXbZ4NVm15nM', '_index': 'sg-access-2021.12.29', '_type': 'doc', 'num_hits': 1374, 'num_matches': 4, 'subject': '核心区里约网关告警', 'alert_type': 'public'}"}
+[2022-01-21 09:41:52] - {"date": "2022-01-21 09:41:52", "funcname": "elastalert_alert", "level": "INFO", "line": 74, "message": "Start handle data. "}
+[2022-01-21 09:41:53] - {"date": "2022-01-21 09:41:53", "funcname": "__log", "level": "INFO", "line": 25, "message": "**核心区里约网关告警**
+>referer: <font color="warning">None</font>
+>targetName: <font color="warning">10.109.103.149</font>
+>deviceTicket: <font color="warning">None</font>
+>orgPathName: <font color="warning">/ebus/mbs_gg_dev/api/publicRetirement/queryRetrShowInfo</font>
+>orgHost: <font color="warning">192.168.204.31:8080</font>
+>reqLength: <font color="warning">-1</font>
+>resLength: <font color="warning">-1</font>
+>targetXRioSeq: <font color="warning">None</font>
+>errorInfo: <font color="warning">client request aborted</font>
+>staffname: <font color="warning">None</font>
+>source: <font color="warning">20211229.access_8.csv</font>
+>orgUrl: <font color="warning">/ebus/mbs_gg_dev/api/publicRetirement/queryRetrShowInfo?</font>
+>deviceId: <font color="warning">None</font>
+>duration: <font color="warning">10002</font>
+>authorization: <font color="warning">None</font>
+>path: <font color="warning">None</font>
+>host: <font color="warning">None</font>
+>beat: <font color="warning">{'hostname': 'host-192-168-204-31', 'name': 'host-192-168-204-31', 'version': '6.6.2'}</font>
+>srvid: <font color="warning">mbs_gg_dev_api_publicretirement_queryretrshowinfo</font>
+>paasid: <font color="warning">mbs_gg_dev</font>
+>remoteAddress: <font color="warning">192.168.204.29</font>
+>ext: <font color="warning">{'timeSendUpstream': '1640739280796'}</font>
+>offset: <font color="warning">459903831</font>
+>method: <font color="warning">POST</font>
+>methodName: <font color="warning">None</font>
+>userAgent: <font color="warning">Apache-HttpClient/4.5.9 (Java/1.8.0_252)</font>
+>xRioSeq: <font color="warning">WIXppFV82J5EH1OR5C3kLIQygIMqPvze</font>
+>acctype: <font color="warning">pub</font>
+>requestTime: <font color="warning">2021-12-29T08:54:40.780+08:00</font>
+>@timestamp: <font color="warning">2021-12-29T08:54:50.782000+08:00</font>
+>forwardedFor: <font color="warning">192.168.204.241, 192.168.204.29</font>
+>port: <font color="warning">None</font>
+>backServerAddress: <font color="warning">None</font>
+>serverIp: <font color="warning">None</font>
+>sourceName: <font color="warning">mbs_gg_dev_pub_mbs_gg_dev_api_publicretirement_queryretrshowinfo</font>
+>fields: <font color="warning">{'type': 'apigate'}</font>
+>statusCode: <font color="warning">aborted</font>
+>_id: <font color="warning">fgKuA34BmXbZ4NVm15nM</font>
+>_index: <font color="warning">sg-access-2021.12.29</font>
+>_type: <font color="warning">doc</font>
+>num_hits: <font color="warning">1374</font>
+>num_matches: <font color="warning">4</font>
+  Send To Wechat Success..."}
+[2022-01-21 09:41:53] - {"date": "2022-01-21 09:41:53", "funcname": "__login", "level": "INFO", "line": 34, "message": "smtp.qq.com Connection success... "}
+[2022-01-21 09:42:25] - {"date": "2022-01-21 09:42:25", "funcname": "elastalert_alert", "level": "INFO", "line": 69, "message": "Get elastalert Data: {'referer': 'None', 'targetName': '10.109.103.149', 'deviceTicket': 'None', 'orgPathName': '/ebus/mbs_gg_dev/api/publicRetirement/queryRetrShowInfo', 'orgHost': '192.168.204.31:8080', 'reqLength': '-1', 'resLength': '-1', 'targetXRioSeq': 'None', 'errorInfo': 'client request aborted', 'staffname': 'None', 'source': '20211229.access_8.csv', 'orgUrl': '/ebus/mbs_gg_dev/api/publicRetirement/queryRetrShowInfo?', 'deviceId': 'None', 'duration': 10002, 'authorization': 'None', 'path': 'None', 'host': 'None', 'beat': {'hostname': 'host-192-168-204-31', 'name': 'host-192-168-204-31', 'version': '6.6.2'}, 'srvid': 'mbs_gg_dev_api_publicretirement_queryretrshowinfo', 'paasid': 'mbs_gg_dev', 'remoteAddress': '192.168.204.29', 'ext': {'timeSendUpstream': '1640739280796'}, 'offset': 459903831, 'method': 'POST', 'methodName': 'None', 'userAgent': 'Apache-HttpClient/4.5.9 (Java/1.8.0_252)', 'xRioSeq': 'WIXppFV82J5EH1OR5C3kLIQygIMqPvze', 'acctype': 'pub', 'requestTime': '2021-12-29T08:54:40.780+08:00', '@timestamp': '2021-12-29T08:54:50.782000+08:00', 'forwardedFor': '192.168.204.241, 192.168.204.29', 'port': 'None', 'backServerAddress': 'None', 'serverIp': 'None', 'sourceName': 'mbs_gg_dev_pub_mbs_gg_dev_api_publicretirement_queryretrshowinfo', 'fields': {'type': 'apigate'}, 'statusCode': 'aborted', '_id': 'fgKuA34BmXbZ4NVm15nM', '_index': 'sg-access-2021.12.29', '_type': 'doc', 'num_hits': 1374, 'num_matches': 4, 'subject': '核心区里约网关告警', 'alert_type': 'public'}"}
+[2022-01-21 09:42:25] - {"date": "2022-01-21 09:42:25", "funcname": "elastalert_alert", "level": "INFO", "line": 74, "message": "Start handle data. "}

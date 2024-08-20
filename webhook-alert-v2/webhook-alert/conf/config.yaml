@@ -1,0 +1,110 @@
+gloable:
+  wechat_webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7b3c7d8f-b410-407f-b2fc-c53686763724'
+  email_server:
+    host: 'smtp.qq.com'
+    port: 465
+    fromAddress: '381347268@qq.com'
+    authPass: 'xobjtdnozozwbgjb'
+  mail_to_host:
+    - 'liyj@tcfuture.tech'
+    - '44934875@qq.com'
+
+components:
+  elastalert:
+    open: true
+    wechat_open: true
+    email_open: true
+    users: [ 'p_pyjli' ]
+    wechat_webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7b23cef6-5623-4370-92be-6542cf492fda'
+    mail_to_host:
+      - '381347268@qq.com'
+
+  grafana:
+    grafana_url: 'http://192.168.102.110:3000'
+    wechat_open: true
+    email_open: true
+    users: [ 'p_pyjli' ]
+    email_subject: 'grafana告警测试'
+    wechat_webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7b23cef6-5623-4370-92be-6542cf492fda'
+    mail_to_host:
+      - '381347268@qq.com'
+
+  zabbix:
+    open: true
+    wechat_open: true
+    email_open: true
+    email_subject: '四川医保-Zabbix告警通知'
+    wechat_webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7b23cef6-5623-4370-92be-6542cf492fda'
+    mail_to_host:
+      - '381347268@qq.com'
+
+  prometheus:
+    open: true
+    wechat_open: true
+    email_open: true
+    subject: '四川医保-Prometheus平台告警通知'
+    users: [ ]
+    wechat_webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7b23cef6-5623-4370-92be-6542cf492fda'
+    mail_to_host:
+      - '381347268@qq.com'
+
+
+  credis:
+    open: true
+    wechat_open: true
+    email_open: true
+    email_subject: '四川医保-核心区Redis告警'
+    users: [ 'p_pyjli' ]
+    wechat_webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7b23cef6-5623-4370-92be-6542cf492fda'
+    mail_to_host:
+      - '381347268@qq.com'
+
+  tbds:
+    open: true
+    wechat_open: true
+    email_open: true
+    email_subject: '四川医保-TBDS告警通知'
+    users: [ 'p_pyjli' ]
+    wechat_webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7b23cef6-5623-4370-92be-6542cf492fda'
+    mail_to_host:
+      - '381347268@qq.com'
+
+  tdsql:
+    open: true
+    wechat_open: true
+    email_open: true
+    email_subject: '四川医保-TDSQL告警通知'
+    users: [ 'p_pyjli' ]
+    wechat_webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7b23cef6-5623-4370-92be-6542cf492fda'
+    mail_to_host:
+      - '381347268@qq.com'
+
+  tbase:
+    open: true
+    wechat_open: true
+    email_open: true
+    email_subject: '四川医保-TBase告警通知'
+    users: [ 'p_pyjli' ]
+    wechat_webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7b23cef6-5623-4370-92be-6542cf492fda'
+    mail_to_host:
+      - '381347268@qq.com'
+
+  tsf:
+    open: true
+    wechat_open: true
+    email_open: true
+    email_subject: '四川医保-TSF告警通知'
+    users: [ 'p_pyjli' ]
+    wechat_webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7b23cef6-5623-4370-92be-6542cf492fda'
+    mail_to_host:
+      - '381347268@qq.com'
+
+  ssl_license:
+    open: true
+    wechat_open: true
+    email_open: true
+    email_subject: '四川医保-域名SSL证书-license告警通知'
+    users: []
+    wechat_webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7b23cef6-5623-4370-92be-6542cf492fda'
+    mail_to_host:
+      - 'p_pyjli@tencent.com'

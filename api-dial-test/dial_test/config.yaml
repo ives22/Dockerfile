@@ -1,0 +1,42 @@
+# es 配置
+elasticsearch:
+  # es连接地址
+  host: 192.168.102.133
+  # es端口号
+  port: 9200
+  # es连接用户名
+  user: elastic
+  # es用户密码
+  password: admin@123
+  # 索引名称
+  index_prefix: dial_test
+
+dial:
+  # 接口配置文件名称
+  api_conf_file: api_config.yaml
+  # 接口拨测超时时间
+  timeout: 5
+  # 探测并发数
+  workers: 10
+
+alert:
+  start: False
+  wechat: True
+  wechat_url: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key="
+  email: False
+  email_host: "smtp.qq.com"
+  email_port: 465
+  email_from_addr: "@qq.com"
+  email_auth_pass: "wbgjb"
+  email_to_hosts:
+    - "future.tech"
+    - '@tencent.com'
+  sms: False
+  sms_secret_id: "sEJ7ebJkuoQlpcARR"
+  sms_secret_key: "XLs87pIUO1NTHo4"
+  sms_sdk_app_id: "150"
+  sms_template_id: "8"
+  sms_sign_name: "四川健康码"
+  sms_region: "ap-guangzhou"
+  sms_phone_numbers: ["+8617308077119"]
+
