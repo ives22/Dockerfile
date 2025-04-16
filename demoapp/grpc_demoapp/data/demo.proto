@@ -1,0 +1,30 @@
+
+syntax = "proto3";
+
+option go_package = ".;demo";
+
+package demo;
+//option go_package = "grpc-long-conn/proto";
+
+service Demo {
+  rpc Connect(ConnectRequest) returns (stream ConnectResponse) {}
+  rpc SayHello(HelloRequest) returns (HelloResponse){}
+}
+
+message ConnectRequest {
+  string client_id = 1;
+}
+
+message ConnectResponse {
+  string server_id = 1;
+  string message = 2;
+  int64 timestamp = 3;
+}
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloResponse {
+  string message = 2;
+}
