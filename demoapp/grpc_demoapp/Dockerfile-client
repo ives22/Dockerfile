@@ -10,12 +10,12 @@ COPY . .
 
 RUN go mod download \
   && go mod tidy \
-  && CGO_ENABLED=0 go build -o client client/main.go
+  && CGO_ENABLED=0 go build -o rpc_client client/main.go
 
 FROM alpine
 
 WORKDIR /opt
 
-COPY --from=builder /build/client /opt/client
+COPY --from=builder /build/rpc_client /opt/rpc_client
 
-CMD ["/bin/sh"]
+CMD ["/bin/sh", "-c", "sleep 36000000"]
