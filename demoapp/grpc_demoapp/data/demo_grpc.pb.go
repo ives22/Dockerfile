@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: demo.proto
+// source: data/demo.proto
 
 package demo
 
@@ -19,29 +19,35 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Demo_Connect_FullMethodName  = "/demo.Demo/Connect"
-	Demo_SayHello_FullMethodName = "/demo.Demo/SayHello"
+	HelloWorld_Connect_FullMethodName        = "/demo.HelloWorld/Connect"
+	HelloWorld_SayHello_FullMethodName       = "/demo.HelloWorld/SayHello"
+	HelloWorld_UploadData_FullMethodName     = "/demo.HelloWorld/UploadData"
+	HelloWorld_Chat_FullMethodName           = "/demo.HelloWorld/Chat"
+	HelloWorld_GetServerStats_FullMethodName = "/demo.HelloWorld/GetServerStats"
 )
 
-// DemoClient is the client API for Demo service.
+// HelloWorldClient is the client API for HelloWorld service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type DemoClient interface {
+type HelloWorldClient interface {
 	Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ConnectResponse], error)
 	SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error)
+	UploadData(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadRequest, UploadResponse], error)
+	Chat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ChatMessage, ChatMessage], error)
+	GetServerStats(ctx context.Context, in *StatsRequest, opts ...grpc.CallOption) (*StatsResponse, error)
 }
 
-type demoClient struct {
+type helloWorldClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewDemoClient(cc grpc.ClientConnInterface) DemoClient {
-	return &demoClient{cc}
+func NewHelloWorldClient(cc grpc.ClientConnInterface) HelloWorldClient {
+	return &helloWorldClient{cc}
 }
 
-func (c *demoClient) Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ConnectResponse], error) {
+func (c *helloWorldClient) Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ConnectResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Demo_ServiceDesc.Streams[0], Demo_Connect_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &HelloWorld_ServiceDesc.Streams[0], HelloWorld_Connect_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,108 +62,502 @@ func (c *demoClient) Connect(ctx context.Context, in *ConnectRequest, opts ...gr
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Demo_ConnectClient = grpc.ServerStreamingClient[ConnectResponse]
+type HelloWorld_ConnectClient = grpc.ServerStreamingClient[ConnectResponse]
 
-func (c *demoClient) SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error) {
+func (c *helloWorldClient) SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(HelloResponse)
-	err := c.cc.Invoke(ctx, Demo_SayHello_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, HelloWorld_SayHello_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// DemoServer is the server API for Demo service.
-// All implementations must embed UnimplementedDemoServer
-// for forward compatibility.
-type DemoServer interface {
-	Connect(*ConnectRequest, grpc.ServerStreamingServer[ConnectResponse]) error
-	SayHello(context.Context, *HelloRequest) (*HelloResponse, error)
-	mustEmbedUnimplementedDemoServer()
+func (c *helloWorldClient) UploadData(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadRequest, UploadResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &HelloWorld_ServiceDesc.Streams[1], HelloWorld_UploadData_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[UploadRequest, UploadResponse]{ClientStream: stream}
+	return x, nil
 }
 
-// UnimplementedDemoServer must be embedded to have
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type HelloWorld_UploadDataClient = grpc.ClientStreamingClient[UploadRequest, UploadResponse]
+
+func (c *helloWorldClient) Chat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ChatMessage, ChatMessage], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &HelloWorld_ServiceDesc.Streams[2], HelloWorld_Chat_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ChatMessage, ChatMessage]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type HelloWorld_ChatClient = grpc.BidiStreamingClient[ChatMessage, ChatMessage]
+
+func (c *helloWorldClient) GetServerStats(ctx context.Context, in *StatsRequest, opts ...grpc.CallOption) (*StatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StatsResponse)
+	err := c.cc.Invoke(ctx, HelloWorld_GetServerStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// HelloWorldServer is the server API for HelloWorld service.
+// All implementations must embed UnimplementedHelloWorldServer
+// for forward compatibility.
+type HelloWorldServer interface {
+	Connect(*ConnectRequest, grpc.ServerStreamingServer[ConnectResponse]) error
+	SayHello(context.Context, *HelloRequest) (*HelloResponse, error)
+	UploadData(grpc.ClientStreamingServer[UploadRequest, UploadResponse]) error
+	Chat(grpc.BidiStreamingServer[ChatMessage, ChatMessage]) error
+	GetServerStats(context.Context, *StatsRequest) (*StatsResponse, error)
+	mustEmbedUnimplementedHelloWorldServer()
+}
+
+// UnimplementedHelloWorldServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedDemoServer struct{}
+type UnimplementedHelloWorldServer struct{}
 
-func (UnimplementedDemoServer) Connect(*ConnectRequest, grpc.ServerStreamingServer[ConnectResponse]) error {
+func (UnimplementedHelloWorldServer) Connect(*ConnectRequest, grpc.ServerStreamingServer[ConnectResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method Connect not implemented")
 }
-func (UnimplementedDemoServer) SayHello(context.Context, *HelloRequest) (*HelloResponse, error) {
+func (UnimplementedHelloWorldServer) SayHello(context.Context, *HelloRequest) (*HelloResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SayHello not implemented")
 }
-func (UnimplementedDemoServer) mustEmbedUnimplementedDemoServer() {}
-func (UnimplementedDemoServer) testEmbeddedByValue()              {}
+func (UnimplementedHelloWorldServer) UploadData(grpc.ClientStreamingServer[UploadRequest, UploadResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method UploadData not implemented")
+}
+func (UnimplementedHelloWorldServer) Chat(grpc.BidiStreamingServer[ChatMessage, ChatMessage]) error {
+	return status.Errorf(codes.Unimplemented, "method Chat not implemented")
+}
+func (UnimplementedHelloWorldServer) GetServerStats(context.Context, *StatsRequest) (*StatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetServerStats not implemented")
+}
+func (UnimplementedHelloWorldServer) mustEmbedUnimplementedHelloWorldServer() {}
+func (UnimplementedHelloWorldServer) testEmbeddedByValue()                    {}
 
-// UnsafeDemoServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to DemoServer will
+// UnsafeHelloWorldServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to HelloWorldServer will
 // result in compilation errors.
-type UnsafeDemoServer interface {
-	mustEmbedUnimplementedDemoServer()
+type UnsafeHelloWorldServer interface {
+	mustEmbedUnimplementedHelloWorldServer()
 }
 
-func RegisterDemoServer(s grpc.ServiceRegistrar, srv DemoServer) {
-	// If the following call pancis, it indicates UnimplementedDemoServer was
+func RegisterHelloWorldServer(s grpc.ServiceRegistrar, srv HelloWorldServer) {
+	// If the following call pancis, it indicates UnimplementedHelloWorldServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&Demo_ServiceDesc, srv)
+	s.RegisterService(&HelloWorld_ServiceDesc, srv)
 }
 
-func _Demo_Connect_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _HelloWorld_Connect_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ConnectRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(DemoServer).Connect(m, &grpc.GenericServerStream[ConnectRequest, ConnectResponse]{ServerStream: stream})
+	return srv.(HelloWorldServer).Connect(m, &grpc.GenericServerStream[ConnectRequest, ConnectResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Demo_ConnectServer = grpc.ServerStreamingServer[ConnectResponse]
+type HelloWorld_ConnectServer = grpc.ServerStreamingServer[ConnectResponse]
 
-func _Demo_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _HelloWorld_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HelloRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DemoServer).SayHello(ctx, in)
+		return srv.(HelloWorldServer).SayHello(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Demo_SayHello_FullMethodName,
+		FullMethod: HelloWorld_SayHello_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DemoServer).SayHello(ctx, req.(*HelloRequest))
+		return srv.(HelloWorldServer).SayHello(ctx, req.(*HelloRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Demo_ServiceDesc is the grpc.ServiceDesc for Demo service.
+func _HelloWorld_UploadData_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(HelloWorldServer).UploadData(&grpc.GenericServerStream[UploadRequest, UploadResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type HelloWorld_UploadDataServer = grpc.ClientStreamingServer[UploadRequest, UploadResponse]
+
+func _HelloWorld_Chat_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(HelloWorldServer).Chat(&grpc.GenericServerStream[ChatMessage, ChatMessage]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type HelloWorld_ChatServer = grpc.BidiStreamingServer[ChatMessage, ChatMessage]
+
+func _HelloWorld_GetServerStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HelloWorldServer).GetServerStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: HelloWorld_GetServerStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HelloWorldServer).GetServerStats(ctx, req.(*StatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// HelloWorld_ServiceDesc is the grpc.ServiceDesc for HelloWorld service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Demo_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "demo.Demo",
-	HandlerType: (*DemoServer)(nil),
+var HelloWorld_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "demo.HelloWorld",
+	HandlerType: (*HelloWorldServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "SayHello",
-			Handler:    _Demo_SayHello_Handler,
+			Handler:    _HelloWorld_SayHello_Handler,
+		},
+		{
+			MethodName: "GetServerStats",
+			Handler:    _HelloWorld_GetServerStats_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "Connect",
-			Handler:       _Demo_Connect_Handler,
+			Handler:       _HelloWorld_Connect_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "UploadData",
+			Handler:       _HelloWorld_UploadData_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "Chat",
+			Handler:       _HelloWorld_Chat_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
+	Metadata: "data/demo.proto",
+}
+
+const (
+	User_RegisterV1_FullMethodName       = "/demo.User/RegisterV1"
+	User_RegisterV2_FullMethodName       = "/demo.User/RegisterV2"
+	User_LoginV1_FullMethodName          = "/demo.User/LoginV1"
+	User_LoginV2_FullMethodName          = "/demo.User/LoginV2"
+	User_GetUserUpdatesV1_FullMethodName = "/demo.User/GetUserUpdatesV1"
+	User_GetUserUpdatesV2_FullMethodName = "/demo.User/GetUserUpdatesV2"
+)
+
+// UserClient is the client API for User service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type UserClient interface {
+	RegisterV1(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	RegisterV2(ctx context.Context, in *RegisterRequestV2, opts ...grpc.CallOption) (*RegisterResponse, error)
+	LoginV1(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	LoginV2(ctx context.Context, in *LoginRequestV2, opts ...grpc.CallOption) (*LoginResponse, error)
+	GetUserUpdatesV1(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[UserUpdate], error)
+	GetUserUpdatesV2(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[UserUpdateV2], error)
+}
+
+type userClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewUserClient(cc grpc.ClientConnInterface) UserClient {
+	return &userClient{cc}
+}
+
+func (c *userClient) RegisterV1(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegisterResponse)
+	err := c.cc.Invoke(ctx, User_RegisterV1_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) RegisterV2(ctx context.Context, in *RegisterRequestV2, opts ...grpc.CallOption) (*RegisterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegisterResponse)
+	err := c.cc.Invoke(ctx, User_RegisterV2_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) LoginV1(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginResponse)
+	err := c.cc.Invoke(ctx, User_LoginV1_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) LoginV2(ctx context.Context, in *LoginRequestV2, opts ...grpc.CallOption) (*LoginResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginResponse)
+	err := c.cc.Invoke(ctx, User_LoginV2_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) GetUserUpdatesV1(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[UserUpdate], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &User_ServiceDesc.Streams[0], User_GetUserUpdatesV1_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[UserRequest, UserUpdate]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type User_GetUserUpdatesV1Client = grpc.ServerStreamingClient[UserUpdate]
+
+func (c *userClient) GetUserUpdatesV2(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[UserUpdateV2], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &User_ServiceDesc.Streams[1], User_GetUserUpdatesV2_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[UserRequest, UserUpdateV2]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type User_GetUserUpdatesV2Client = grpc.ServerStreamingClient[UserUpdateV2]
+
+// UserServer is the server API for User service.
+// All implementations must embed UnimplementedUserServer
+// for forward compatibility.
+type UserServer interface {
+	RegisterV1(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	RegisterV2(context.Context, *RegisterRequestV2) (*RegisterResponse, error)
+	LoginV1(context.Context, *LoginRequest) (*LoginResponse, error)
+	LoginV2(context.Context, *LoginRequestV2) (*LoginResponse, error)
+	GetUserUpdatesV1(*UserRequest, grpc.ServerStreamingServer[UserUpdate]) error
+	GetUserUpdatesV2(*UserRequest, grpc.ServerStreamingServer[UserUpdateV2]) error
+	mustEmbedUnimplementedUserServer()
+}
+
+// UnimplementedUserServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedUserServer struct{}
+
+func (UnimplementedUserServer) RegisterV1(context.Context, *RegisterRequest) (*RegisterResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterV1 not implemented")
+}
+func (UnimplementedUserServer) RegisterV2(context.Context, *RegisterRequestV2) (*RegisterResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterV2 not implemented")
+}
+func (UnimplementedUserServer) LoginV1(context.Context, *LoginRequest) (*LoginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginV1 not implemented")
+}
+func (UnimplementedUserServer) LoginV2(context.Context, *LoginRequestV2) (*LoginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginV2 not implemented")
+}
+func (UnimplementedUserServer) GetUserUpdatesV1(*UserRequest, grpc.ServerStreamingServer[UserUpdate]) error {
+	return status.Errorf(codes.Unimplemented, "method GetUserUpdatesV1 not implemented")
+}
+func (UnimplementedUserServer) GetUserUpdatesV2(*UserRequest, grpc.ServerStreamingServer[UserUpdateV2]) error {
+	return status.Errorf(codes.Unimplemented, "method GetUserUpdatesV2 not implemented")
+}
+func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
+func (UnimplementedUserServer) testEmbeddedByValue()              {}
+
+// UnsafeUserServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UserServer will
+// result in compilation errors.
+type UnsafeUserServer interface {
+	mustEmbedUnimplementedUserServer()
+}
+
+func RegisterUserServer(s grpc.ServiceRegistrar, srv UserServer) {
+	// If the following call pancis, it indicates UnimplementedUserServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&User_ServiceDesc, srv)
+}
+
+func _User_RegisterV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).RegisterV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_RegisterV1_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).RegisterV1(ctx, req.(*RegisterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_RegisterV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterRequestV2)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).RegisterV2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_RegisterV2_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).RegisterV2(ctx, req.(*RegisterRequestV2))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_LoginV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).LoginV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_LoginV1_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).LoginV1(ctx, req.(*LoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_LoginV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginRequestV2)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).LoginV2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_LoginV2_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).LoginV2(ctx, req.(*LoginRequestV2))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_GetUserUpdatesV1_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(UserRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UserServer).GetUserUpdatesV1(m, &grpc.GenericServerStream[UserRequest, UserUpdate]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type User_GetUserUpdatesV1Server = grpc.ServerStreamingServer[UserUpdate]
+
+func _User_GetUserUpdatesV2_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(UserRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UserServer).GetUserUpdatesV2(m, &grpc.GenericServerStream[UserRequest, UserUpdateV2]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type User_GetUserUpdatesV2Server = grpc.ServerStreamingServer[UserUpdateV2]
+
+// User_ServiceDesc is the grpc.ServiceDesc for User service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var User_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "demo.User",
+	HandlerType: (*UserServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "RegisterV1",
+			Handler:    _User_RegisterV1_Handler,
+		},
+		{
+			MethodName: "RegisterV2",
+			Handler:    _User_RegisterV2_Handler,
+		},
+		{
+			MethodName: "LoginV1",
+			Handler:    _User_LoginV1_Handler,
+		},
+		{
+			MethodName: "LoginV2",
+			Handler:    _User_LoginV2_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetUserUpdatesV1",
+			Handler:       _User_GetUserUpdatesV1_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetUserUpdatesV2",
+			Handler:       _User_GetUserUpdatesV2_Handler,
 			ServerStreams: true,
 		},
 	},
-	Metadata: "demo.proto",
+	Metadata: "data/demo.proto",
 }

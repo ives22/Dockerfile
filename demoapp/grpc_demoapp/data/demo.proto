@@ -1,14 +1,24 @@
-
 syntax = "proto3";
 
-option go_package = ".;demo";
-
+option go_package = "grpc_demoapp/data/demo";
 package demo;
 //option go_package = "grpc-long-conn/proto";
 
-service Demo {
+service HelloWorld {
   rpc Connect(ConnectRequest) returns (stream ConnectResponse) {}
   rpc SayHello(HelloRequest) returns (HelloResponse){}
+  rpc UploadData(stream UploadRequest) returns (UploadResponse) {}
+  rpc Chat(stream ChatMessage) returns (stream ChatMessage) {}
+  rpc GetServerStats(StatsRequest) returns (StatsResponse) {}
+}
+
+service User {
+  rpc RegisterV1(RegisterRequest) returns (RegisterResponse) {}
+  rpc RegisterV2(RegisterRequestV2) returns (RegisterResponse) {}
+  rpc LoginV1(LoginRequest) returns (LoginResponse) {}
+  rpc LoginV2(LoginRequestV2) returns (LoginResponse) {}
+  rpc GetUserUpdatesV1(UserRequest) returns (stream UserUpdate) {}
+  rpc GetUserUpdatesV2(UserRequest) returns (stream UserUpdateV2) {}
 }
 
 message ConnectRequest {
@@ -27,4 +37,126 @@ message HelloRequest {
 
 message HelloResponse {
   string message = 2;
+}
+
+message UploadRequest {
+  string client_id = 1;
+  bytes data = 2;
+  int64 timestamp = 3;
+}
+
+message UploadResponse {
+  int64 total_bytes = 1;
+  int32 chunks_received = 2;
+  string message = 3;
+}
+
+message ChatMessage {
+  string sender = 1;
+  string content = 2;
+  int64 timestamp = 3;
+}
+
+message StatsRequest {
+  string client_id = 1;
+}
+
+message StatsResponse {
+  string server_id = 1;
+  int64 uptime = 2;
+  int32 connected_clients = 3;
+  int64 total_requests = 4;
+  string version = 5;
+}
+
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+}
+
+message RegisterRequestV2 {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+  string phone = 4;
+  string nickname = 5;
+  map<string, string> metadata = 6;
+}
+
+message RegisterResponse {
+  bool success = 1;
+  string user_id = 2;
+  string message = 3;
+  int64 created_at = 4;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginRequestV2 {
+  enum LoginType {
+    USERNAME = 0;
+    EMAIL = 1;
+    PHONE = 2;
+    TOKEN = 3;
+  }
+  string identifier = 1;
+  string credential = 2;
+  LoginType login_type = 3;
+}
+
+message LoginResponse {
+  bool success = 1;
+  string token = 2;
+  string message = 3;
+  UserInfo user_info = 4;
+}
+
+message UserInfo {
+  string user_id = 1;
+  string username = 2;
+  string email = 3;
+  string phone = 4;
+  string nickname = 5;
+  int64 created_at = 6;
+  int64 last_login = 7;
+  map<string, string> metadata = 8;
+}
+
+message UserRequest {
+  string user_id = 1;
+}
+
+message UserUpdate {
+  string user_id = 1;
+  string status = 2;
+  int64 timestamp = 3;
+}
+
+message UserUpdateV2 {
+  string user_id = 1;
+  string status = 2;
+  int64 timestamp = 3;
+  repeated string active_sessions = 4;
+  map<string, string> custom_status = 5;
+  Location last_location = 6;
+  DeviceInfo device_info = 7;
+}
+
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+  string address = 3;
+  int64 updated_at = 4;
+}
+
+message DeviceInfo {
+  string device_id = 1;
+  string device_type = 2;
+  string os_version = 3;
+  string app_version = 4;
+  map<string, string> device_metadata = 5;
 }
