@@ -10,9 +10,10 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+COPY --chown=0:0 --chmod=755 docker-entrypoint.sh /
+
 # 设置环境变量（可在运行时覆盖）
 ENV TZ=UTC
 
-USER envoy
-
-CMD ["sh", "-c", "ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && envoy -c /etc/envoy/envoy.yaml"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["envoy", "-c", "/etc/envoy/envoy.yaml"]
