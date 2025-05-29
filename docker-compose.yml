@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  demoapp:
+    build:
+      context: ./demoapp-go
+    ports:
+      - "8080:80"
+    environment:
+      - VERSION=v2.0
+      - APP_NAME=demoapp-go
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5901:5901"
+    environment:
+      - BACKEND_URL=http://demoapp:80
+      - PROXY_VERSION=v1.0
+    depends_on:
+      - demoapp
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge 
