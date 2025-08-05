@@ -1,10 +1,3 @@
-# FROM ubuntu:24.04
-
-# RUN apt-get update && \
-#     apt-get install -y --no-install-recommends language-pack-zh-hans && \
-#     echo export LANG=zh_CN.UTF-8 >> ~/.bashrc && \
-#     rm -rf /var/lib/apt/lists/*
-
 FROM ubuntu:24.04
 
 # 安装 locales 包
