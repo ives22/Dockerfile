@@ -14,12 +14,12 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, Side, Border, PatternFill
 
 # host_info = {
-#     # "124.71.33.240": {"con_info": {"user": "root", "port": 22, "pass": "ives.123", "vm": "cvm", "type": "准入网关服务器", "cpu": 2, "mem": 8}, "cpu_info": {}, "mem_info": {},
+#     # "124.71.33.240": {"con_info": {"user": "root", "port": 22, "pass": "xxx", "vm": "cvm", "type": "准入网关服务器", "cpu": 2, "mem": 8}, "cpu_info": {}, "mem_info": {},
 #     #                   "disk_info": {}},
-#     # "139.155.85.40": {"con_info": {"user": "root", "port": 22, "pass": "ives.123", "vm": "cvm", "type": "准入网关服务器", "cpu": 2, "mem": 8}, "cpu_info": {}, "mem_info": {},
+#     # "139.155.85.40": {"con_info": {"user": "root", "port": 22, "pass": "xxx", "vm": "cvm", "type": "准入网关服务器", "cpu": 2, "mem": 8}, "cpu_info": {}, "mem_info": {},
 #     #                   "disk_info": {}},
 #     "120.24.222.91": {
-#         "con_info": {"user": "root", "port": 22, "pass": "ives.123", "vm": "cvm", "type": "准入网关服务器", "cpu": 2,
+#         "con_info": {"user": "root", "port": 22, "pass": "xxx", "vm": "cvm", "type": "准入网关服务器", "cpu": 2,
 #                      "mem": 8}, "cpu_info": {}, "mem_info": {},
 #         "disk_info": {}},
 # }
