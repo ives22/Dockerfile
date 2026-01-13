@@ -16,6 +16,7 @@ RUN set -eux && \
     apk add --no-cache \
         bash \
         curl \
+        jq \
         bind-tools \
         iproute2 \
         iptables \
