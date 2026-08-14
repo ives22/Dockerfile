@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package demo.v1;
+
+option go_package = "demoapp/proto/demo/v1;demov1";
+
+service DemoService {
+  rpc Echo(EchoRequest) returns (EchoResponse);
+}
+
+message EchoRequest {
+  string message = 1;
+}
+
+message EchoResponse {
+  string message = 1;
+  string pod = 2;
+  string pod_ip = 3;
+  string version = 4;
+}

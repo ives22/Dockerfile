@@ -39,12 +39,12 @@ COPY --from=builder /app/demoapp /usr/local/bin/
 USER appuser
 
 # 设置环境变量
-ENV VERSION=v2.0
+ENV VERSION=v2.1
 ENV APP_NAME=demoapp
 ENV PORT=80
 
-# 暴露端口
-EXPOSE 80
+# HTTP 默认端口；其余协议仅在对应环境变量配置后启动
+EXPOSE 80 8443 9090 9000/tcp 9000/udp
 
 # 运行应用
-ENTRYPOINT ["/usr/local/bin/demoapp"] 
+ENTRYPOINT ["/usr/local/bin/demoapp"]
